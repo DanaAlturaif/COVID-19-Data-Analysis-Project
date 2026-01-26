@@ -1,9 +1,17 @@
-Select * From PortfolioProject..CovidDeaths
+/*
+
+Covid 19 Data Exploration--
+
+Skills used:
+-Joins     -Temp Tables           -Creating Views
+-CTE'S     -Windows Functions     -Aggregate Functions      
+
+*/
+
+Select * 
+From PortfolioProject..CovidDeaths
 Where continent is not null
 order by 3,4
-
---Select * From PortfolioProject..CovidVacc
---order by 3,4
 
 -- Select data that we are going to be using 
 
@@ -65,34 +73,37 @@ Where continent is not null
 order by 1,2
 
 -- Looking at Total Population vs Vaccination
+-- Shows percentage of Population that has recieved at least one Covid Vaccine
 
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.location Order by dea.location, dea.date) as RollingPeopleVaccinated
+, SUM(CONVERT(int,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/population)*100
 From PortfolioProject..CovidDeaths dea
-Join PortfolioProject..CovidVacc vac
-     On dea.location = vac.location
-     and dea.date = vac.date
-Where dea.continent is not null
-Order By 2,3
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null 
+order by 2,3
 
--- USE CTE 
+-- use CTE to perform Calculation on Partition By in previous query
 
-With PopvsVac (Continient, Location, Date, Population, New_Vaccinations, RollingPeopleVaccinated)
-as 
+With PopvsVac (Continent, Location, Date, Population, New_Vaccinations, RollingPeopleVaccinated)
+as
 (
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.location Order by dea.location, dea.date) as RollingPeopleVaccinated
+, SUM(CONVERT(int,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/population)*100
 From PortfolioProject..CovidDeaths dea
-Join PortfolioProject..CovidVacc vac
-     On dea.location = vac.location
-     and dea.date = vac.date
-Where dea.continent is not null
---Order By 2,3 
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null 
+--order by 2,3
 )
-Select * , (RollingPeopleVaccinated/Population)*100
+Select *, (RollingPeopleVaccinated/Population)*100
 From PopvsVac
-
---TEMP TABLE
+     
+--Using Temp Table to perform Calculation on Partition By in previous query
 
 DROP Table if exists #PrecentPopulationVaccinated
 Create Table #PrecentPopulationVaccinated
@@ -118,17 +129,15 @@ Join PortfolioProject..CovidVacc vac
 Select * , (RollingPeopleVaccinated/Population)*100
 From #PrecentPopulationVaccinated
 
--- Creating view to store date for late visualizaitons
+-- Creating View to store data for later visualizations
 
-Create View PrecentPopulationVaccinated as
+Create View PercentPopulationVaccinated as
 Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
-, SUM(cast(vac.new_vaccinations as int)) OVER (Partition by dea.location Order by dea.location, dea.date) as RollingPeopleVaccinated
+, SUM(CONVERT(int,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/population)*100
 From PortfolioProject..CovidDeaths dea
-Join PortfolioProject..CovidVacc vac
-     On dea.location = vac.location
-     and dea.date = vac.date
-Where dea.continent is not null
---Order By 2,3 
+Join PortfolioProject..CovidVaccinations vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null 
 
-Select *
-From PrecentPopulationVaccinated
