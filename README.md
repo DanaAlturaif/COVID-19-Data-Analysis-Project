@@ -4,7 +4,7 @@ This repository contains an end-to-end data analysis project based on global COV
 
 The goal of this project is to explore global cases, deaths, and infection rates, and present key insights through an interactive dashboard.
 
-##Tools Used
+## Tools Used
 - SQL (Data Exploration)
 - Tableau (Data Visualization)
 
